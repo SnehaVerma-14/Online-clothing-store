@@ -1,0 +1,131 @@
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY AUTO_INCREMENT,
+    FirstName VARCHAR(50),
+    LastName VARCHAR(50),
+    Email VARCHAR(100) UNIQUE,
+    Phone VARCHAR(15),
+    Address VARCHAR(255),
+    City VARCHAR(50),
+    PostalCode VARCHAR(20),
+    Country VARCHAR(50)
+);
+
+CREATE TABLE Categories (
+    CategoryID INT PRIMARY KEY AUTO_INCREMENT,
+    CategoryName VARCHAR(50)
+);
+
+CREATE TABLE Products (
+    ProductID INT PRIMARY KEY AUTO_INCREMENT,
+    ProductName VARCHAR(100),
+    CategoryID INT,
+    Price DECIMAL(10, 2),
+    Description TEXT,
+    ImageURL VARCHAR(255),
+    FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID)
+);
+
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY AUTO_INCREMENT,
+    CustomerID INT,
+    OrderDate DATETIME,
+    Status VARCHAR(50),
+    ShippingAddress VARCHAR(255),
+    ShippingCity VARCHAR(50),
+    ShippingPostalCode VARCHAR(20),
+    ShippingCountry VARCHAR(50),
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
+);
+
+CREATE TABLE Order_Items (
+    OrderItemID INT PRIMARY KEY AUTO_INCREMENT,
+    OrderID INT,
+    ProductID INT,
+    Quantity INT,
+    Price DECIMAL(10, 2),
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+);
+
+CREATE TABLE Payments (
+    PaymentID INT PRIMARY KEY AUTO_INCREMENT,
+    OrderID INT,
+    PaymentDate DATETIME,
+    Amount DECIMAL(10, 2),
+    PaymentMethod VARCHAR(50),
+    Status VARCHAR(50),
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID)
+);
+
+CREATE TABLE Inventory (
+    ProductID INT,
+    StockLevel INT,
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+);
+
+CREATE TABLE Shipping (
+    ShippingID INT PRIMARY KEY AUTO_INCREMENT,
+    OrderID INT,
+    ShippingDate DATETIME,
+    EstimatedArrival DATETIME,
+    ShippingStatus VARCHAR(50),
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID)
+);
+
+INSERT INTO Categories (CategoryName) VALUES
+('Shirts'),
+('Pants'),
+('Dresses'),
+('Jackets'),
+('Shoes');
+
+INSERT INTO Products (ProductName, CategoryID, Price, Description, ImageURL) VALUES
+('T-Shirt', 1, 19.99, 'A comfortable cotton t-shirt.', 'url_to_image'),
+('Jeans', 2, 39.99, 'Denim jeans for casual wear.', 'url_to_image'),
+('Dress', 3, 59.99, 'Elegant evening dress.', 'url_to_image');
+
+INSERT INTO Customers (FirstName, LastName, Email, Phone, Address, City, PostalCode, Country) VALUES
+('John', 'Doe', 'john.doe@example.com', '123-456-7890', '123 Elm Street', 'New York', '10001', 'USA');
+
+INSERT INTO Orders (CustomerID, OrderDate, Status, ShippingAddress, ShippingCity, ShippingPostalCode, ShippingCountry) 
+VALUES (1, '2025-02-28 10:00:00', 'Processing', '123 Elm Street', 'New York', '10001', 'USA');
+
+INSERT INTO Order_Items (OrderID, ProductID, Quantity, Price) VALUES
+(1, 1, 2, 19.99),
+(1, 2, 1, 39.99);
+
+INSERT INTO Payments (OrderID, PaymentDate, Amount, PaymentMethod, Status) VALUES
+(1, '2025-02-28 10:15:00', 79.97, 'Credit Card', 'Completed');
+
+INSERT INTO Inventory (ProductID, StockLevel) VALUES
+(1, 50),
+(2, 100),
+(3, 30);
+
+INSERT INTO Shipping (OrderID, ShippingDate, EstimatedArrival, ShippingStatus) VALUES
+(1, '2025-02-28 12:00:00', '2025-03-05 12:00:00', 'Shipped');
+
+SELECT * FROM Products;
+
+SELECT * FROM Orders WHERE CustomerID = 1;
+
+UPDATE Inventory SET StockLevel = StockLevel - 1 WHERE ProductID = 1;
+
+SELECT OrderID, Status FROM Orders WHERE OrderID = 1;
+
+SELECT p.ProductName, SUM(oi.Quantity) AS TotalSales
+FROM Order_Items oi
+JOIN Products p ON oi.ProductID = p.ProductID
+GROUP BY p.ProductName;
+
+UPDATE Payments SET Status = 'Refunded' WHERE PaymentID = 1;
+
+SELECT p.ProductName, i.StockLevel
+FROM Inventory i
+JOIN Products p ON i.ProductID = p.ProductID;
+
+SELECT o.OrderID, o.OrderDate, c.FirstName, c.LastName, SUM(oi.Quantity * oi.Price) AS TotalAmount
+FROM Orders o
+JOIN Customers c ON o.CustomerID = c.CustomerID
+JOIN Order_Items oi ON o.OrderID = oi.OrderID
+GROUP BY o.OrderID;
